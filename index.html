@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>League Homepage</title>
+
+    <style>
+      body {
+        background: #e5e7eb;
+        color: black;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .game-card {
+        background: #d1d5db;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .game-card:hover {
+        background: #9ba3b0;
+        transform: scale(1.01);
+      }
+
+      .team {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 120px;
+      }
+
+      .team img {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        object-fit: cover;
+      }
+
+      .result {
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        min-width: 80px;
+      }
+
+      .game-info {
+        text-align: right;
+        min-width: 120px;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>LZR NS</h1>
+    <div id="gamesList"></div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        get,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBrMu0mjZw1SIh-0KgEVaKoPURdN1PhC0w",
+        authDomain: "kk-panthers-39d91.firebaseapp.com",
+        databaseURL:
+          "https://kk-panthers-39d91-default-rtdb.europe-west1.firebasedatabase.app/",
+        projectId: "kk-panthers-39d91",
+        storageBucket: "kk-panthers-39d91.appspot.com",
+        messagingSenderId: "605710897252",
+        appId: "1:605710897252:web:9469a8022065af45748f71",
+        measurementId: "G-KL6BJPX04S",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      const gamesRef = ref(db, "games");
+
+      get(gamesRef).then((snapshot) => {
+        if (!snapshot.exists()) {
+          document.getElementById("gamesList").innerHTML =
+            "<p>No games found.</p>";
+          return;
+        }
+
+        const games = snapshot.val();
+        const gameKeys = Object.keys(games);
+        gameKeys.sort((a, b) => {
+          return new Date(b.split("_")[0]) - new Date(a.split("_")[0]);
+        });
+
+        const list = document.getElementById("gamesList");
+
+        gameKeys.forEach((key) => {
+          const game = games[key];
+          const info = game.gameInfo || {};
+
+          const teamA = info.teamA || "Team A";
+          const teamB = info.teamB || "Team B";
+
+          const logoA = info.teamA_logo;
+          const logoB = info.teamB_logo;
+
+          const scoreA = info.scoreA ?? "-";
+          const scoreB = info.scoreB ?? "-";
+
+          const date = info.date || key.split("_")[0];
+
+          const card = document.createElement("div");
+          card.className = "game-card";
+          card.onclick = () => {
+            window.location.href = `stats.html?id=${key}`;
+          };
+
+          card.innerHTML = `
+    <div class="team">
+        <img src="team_logo/${logoA}">
+        <span>${teamA}</span>
+    </div>
+
+    <div class="result">${scoreA} : ${scoreB}</div>
+
+    <div class="team">
+        <span>${teamB}</span>
+        <img src="team_logo/${logoB}">
+    </div>
+
+    <div class="game-info">
+        <div class="date">${date}</div>
+    </div>
+`;
+
+          list.appendChild(card);
+        });
+      });
+    </script>
+  </body>
+</html>

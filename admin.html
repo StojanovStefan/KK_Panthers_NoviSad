@@ -133,10 +133,21 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
 
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      const gameId = getQueryParam("id");
+      if (!gameId) {
+        document.body.innerHTML = "<p>No game selected.</p>";
+        throw new Error("No game ID provided in URL");
+      }
+
       let teamA = "";
       let teamB = "";
 
-      onValue(ref(db, "gameData/gameInfo"), (snap) => {
+      onValue(ref(db, `games/${gameId}/gameInfo`), (snap) => {
         const info = snap.val();
         if (!info) return;
 
@@ -160,10 +171,9 @@
       }
 
       function loadTeamPlayers(team, boxId) {
-        onValue(ref(db, `gameData/teams/${team}/players`), (snap) => {
+        onValue(ref(db, `games/${gameId}/teams/${team}/players`), (snap) => {
           const players = snap.val() || {};
           const box = document.getElementById(boxId);
-
           box.innerHTML = "";
 
           for (let number in players) {
@@ -207,10 +217,13 @@
       async function applyAction(team, player, action, playerName = "") {
         const playerStatsRef = ref(
           db,
-          `gameData/teams/${team}/players/${player}/stats`
+          `games/${gameId}/teams/${team}/players/${player}/stats`
         );
-        const teamStatsRef = ref(db, `gameData/teams/${team}/team_stats`);
-        const gameInfoRef = ref(db, "gameData/gameInfo");
+        const teamStatsRef = ref(
+          db,
+          `games/${gameId}/teams/${team}/team_stats`
+        );
+        const gameInfoRef = ref(db, `games/${gameId}/gameInfo`);
 
         let playerUpdates = {};
         let teamUpdates = {};
@@ -253,7 +266,7 @@
           const pts = parseInt(action.split("_")[1]);
           made(pts);
 
-          const lastScoreRef = ref(db, "gameData/lastScore");
+          const lastScoreRef = ref(db, `games/${gameId}/lastScore`);
           await update(lastScoreRef, {
             player,
             playerName,
@@ -305,7 +318,7 @@
         if (Object.keys(gameUpdates).length)
           await update(gameInfoRef, gameUpdates);
 
-        await push(ref(db, "gameData/events"), {
+        await push(ref(db, `games/${gameId}/events`), {
           player,
           playerName,
           team,
@@ -315,7 +328,7 @@
       }
 
       async function undoLastPlay() {
-        const eventsSnap = await get(ref(db, "gameData/events"));
+        const eventsSnap = await get(ref(db, `games/${gameId}/events`));
         const events = eventsSnap.val();
         if (!events) {
           return alert("Nema poslednjih akcija");
@@ -337,10 +350,13 @@
         const { player, team, type } = lastEvent;
         const playerStatsRef = ref(
           db,
-          `gameData/teams/${team}/players/${player}/stats`
+          `games/${gameId}/teams/${team}/players/${player}/stats`
         );
-        const teamStatsRef = ref(db, `gameData/teams/${team}/team_stats`);
-        const gameInfoRef = ref(db, "gameData/gameInfo");
+        const teamStatsRef = ref(
+          db,
+          `games/${gameId}/teams/${team}/team_stats`
+        );
+        const gameInfoRef = ref(db, `games/${gameId}/gameInfo`);
 
         let playerUpdates = {};
         let teamUpdates = {};
@@ -423,7 +439,7 @@
         if (Object.keys(gameUpdates).length)
           await update(gameInfoRef, gameUpdates);
 
-        await remove(ref(db, `gameData/events/${lastKey}`));
+        await remove(ref(db, `games/${gameId}/events/${lastKey}`));
         alert("Poslednja akcija je poništena!");
       }
 

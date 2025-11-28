@@ -231,6 +231,19 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
 
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      const gameId = getQueryParam("id");
+      if (!gameId) {
+        document.body.innerHTML = "<p>No game selected.</p>";
+        throw new Error("No game ID provided in URL");
+      }
+
+      const gameRef = ref(db, `games/${gameId}`);
+
       let popupTimer = null;
       let lastPopupTimestamp = 0;
 
@@ -298,7 +311,7 @@
         popupTimer = setTimeout(() => popup.classList.remove("show"), 5000);
       }
 
-      onValue(ref(db, "gameData"), (snapshot) => {
+      onValue(gameRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
 

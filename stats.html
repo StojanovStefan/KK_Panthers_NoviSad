@@ -177,8 +177,8 @@
 
       #timelineContainer {
         position: relative;
+        display: none;
         margin-top: 20px;
-        display: flex;
         flex-direction: column;
         align-items: center;
       }
@@ -263,6 +263,14 @@
         margin-top: 5px;
         z-index: 5;
       }
+      .live-broadcast {
+        cursor: pointer;
+        font-size: 1em;
+      }
+      .live-broadcast:hover {
+        transform: scale(1.2);
+        transition: transform 0.2s;
+      }
     </style>
   </head>
   <body>
@@ -276,10 +284,9 @@
       <button id="btnTimeline" class="switch-btn">TOK UTAKMICE</button>
     </div>
 
-    <div id="timelineContainer" style="display: none"></div>
-
     <div id="teamTotals"></div>
     <div id="statsContainer"></div>
+    <div id="timelineContainer"></div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -304,44 +311,111 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
 
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      const gameId = getQueryParam("id");
+      if (!gameId) {
+        document.body.innerHTML = "<p>No game selected.</p>";
+        throw new Error("No game ID provided in URL");
+      }
+
       let orderedTeams = [];
       let globalTeams = {};
 
-      onValue(ref(db, "gameData/gameInfo"), (snap) => {
+      function copyBroadcastLink() {
+        const link = `${window.location.origin}/broadcast.html?id=${gameId}`;
+
+        navigator.clipboard
+          .writeText(link)
+          .then(() => {
+            showTemporaryNotification("Link za live broadcast kopiran!");
+          })
+          .catch((err) => {
+            console.error("Neuspešno kopiranje linka:", err);
+            showTemporaryNotification("Greška pri kopiranju linka!");
+          });
+      }
+
+      function showTemporaryNotification(message) {
+        const notification = document.createElement("div");
+        notification.textContent = message;
+        notification.style.position = "fixed";
+        notification.style.bottom = "20px";
+        notification.style.right = "20px";
+        notification.style.background = "#fbbf24";
+        notification.style.color = "#000";
+        notification.style.padding = "10px 15px";
+        notification.style.borderRadius = "8px";
+        notification.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+        notification.style.zIndex = 9999;
+        notification.style.opacity = "0";
+        notification.style.transition = "opacity 0.3s ease";
+
+        document.body.appendChild(notification);
+
+        requestAnimationFrame(() => {
+          notification.style.opacity = "1";
+        });
+        setTimeout(() => {
+          notification.style.opacity = "0";
+          notification.addEventListener("transitionend", () => {
+            notification.remove();
+          });
+        }, 2000);
+      }
+
+      onValue(ref(db, `games/${gameId}/gameInfo`), (snap) => {
         const info = snap.val() || {};
         orderedTeams = [info.teamA, info.teamB];
         renderGameHeader(info);
       });
 
       function renderGameHeader(info) {
+        if (!info || !info.teamA || !info.teamB) {
+          document.getElementById("gameHeader").innerHTML =
+            "<p>Podaci o utakmici nisu dostupni.</p>";
+          return;
+        }
+
         const container = document.getElementById("gameHeader");
+
+        const date = info.date || "";
+        const startTime = info.startTime || "";
+
         container.innerHTML = `
-          <div class="game-header">
-            <div class="game-info">
-              <span>📍 ${info.location || "Nepoznato"}</span> •
-              <span>📅 ${info.date || ""}</span> •
-              <span>🕒 ${info.startTime || ""}</span>
-            </div>
+   <div class="game-header">
+  <div class="game-info">
+    📍 ${info.location || "Nepoznato"} •
+    📅 ${date} •
+    🕒 ${startTime} •
+    <span class="live-broadcast">🎦</span>
+  </div>
 
-            <div class="teams">
-              <div class="team-block">
-                <img src="team_logo/${info.teamA_logo}" class="big-logo">
-                <div class="team-name-large">${info.teamA}</div>
-              </div>
+  <div class="teams">
+    <div class="team-block">
+      <img src="team_logo/${info.teamA_logo || "default.png"}" class="big-logo">
+      <div class="team-name-large">${info.teamA}</div>
+    </div>
 
-              <div class="score-big">${info.scoreA ?? "-"} : ${
-          info.scoreB ?? "-"
-        }</div>
+    <div class="score-big">${info.scoreA ?? "-"} : ${info.scoreB ?? "-"}</div>
 
-              <div class="team-block">
-                <img src="team_logo/${info.teamB_logo}" class="big-logo">
-                <div class="team-name-large">${info.teamB}</div>
-              </div>
-            </div>
-          </div>`;
+    <div class="team-block">
+      <img src="team_logo/${info.teamB_logo || "default.png"}" class="big-logo">
+      <div class="team-name-large">${info.teamB}</div>
+    </div>
+  </div>
+</div>
+  `;
+        const broadcastIcon = container.querySelector(".live-broadcast");
+        if (broadcastIcon) {
+          broadcastIcon.addEventListener("click", copyBroadcastLink);
+        }
       }
 
-      onValue(ref(db, "gameData/teams"), (snap) => {
+      onValue(ref(db, `games/${gameId}/teams`), (snap) => {
         globalTeams = snap.val() || {};
         renderStats(globalTeams);
         renderTotals(globalTeams);
@@ -462,7 +536,7 @@
 
       /* ------------------ Game TimeLine ------------------ */
 
-      onValue(ref(db, "gameData/events"), (snap) => {
+      onValue(ref(db, `games/${gameId}/events`), (snap) => {
         const events = snap.val() || {};
         renderTimeline(events);
       });
@@ -542,7 +616,7 @@
             default:
               text = ev.type;
           }
-          const teamName = ev.teamName || getTeamByPlayer(ev.playerName);
+          const teamName = ev.team || getTeamByPlayer(ev.playerName);
           const alignmentClass =
             teamName === orderedTeams[1] ? "event-right" : "event-left";
           const logo = globalTeams[teamName]?.logo || "default.png";
@@ -577,7 +651,7 @@
         });
       }
 
-      /* ------------------ NEW FULL TOTALS ------------------ */
+      /* ------------------ FULL TEAMS TOTALS ------------------ */
 
       function renderTotals(teams) {
         const container = document.getElementById("teamTotals");
