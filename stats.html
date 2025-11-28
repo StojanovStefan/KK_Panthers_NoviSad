@@ -326,7 +326,8 @@
       let globalTeams = {};
 
       function copyBroadcastLink() {
-        const link = `${window.location.origin}/broadcast.html?id=${gameId}`;
+        const basePath = "/KK_Panthers_NoviSad";
+        const link = `${window.location.origin}${basePath}/broadcast.html?id=${gameId}`;
 
         navigator.clipboard
           .writeText(link)
