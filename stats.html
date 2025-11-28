@@ -87,7 +87,21 @@
 
       .score-big {
         font-size: 48px;
-        font-weight: bold;
+        white-space: nowrap;
+        min-width: 60px;
+        text-align: center;
+      }
+
+      @media (max-width: 1024px) {
+        .score-big {
+          font-size: 36px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .score-big {
+          font-size: 28px;
+        }
       }
 
       .game-info {
@@ -160,6 +174,95 @@
         height: 100%;
         background: #9ca3af;
       }
+
+      #timelineContainer {
+        position: relative;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #timelineContainer::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        width: 2px;
+        height: 100%;
+        background: #d1d5db;
+        transform: translateX(-50%);
+        z-index: 0;
+      }
+
+      .event-card {
+        display: flex;
+        position: relative;
+        width: 45%;
+        margin: 10px 0;
+        padding: 10px 15px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1;
+      }
+
+      .event-left {
+        margin-right: auto;
+        border-left: 4px solid #6a0dad;
+        flex-direction: row;
+      }
+
+      .event-right {
+        margin-left: auto;
+        border-right: 4px solid #0a1d4d;
+        flex-direction: row-reverse;
+      }
+
+      .event-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+      }
+
+      .event-right .event-logo {
+        margin-left: 10px;
+        margin-right: 0;
+      }
+
+      .event-text {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .event-player {
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .event-type {
+        font-size: 14px;
+        color: #333;
+        margin: 0;
+      }
+
+      .timeline-score {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #fbbf24;
+        color: black;
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        margin-top: 5px;
+        z-index: 5;
+      }
     </style>
   </head>
   <body>
@@ -170,7 +273,10 @@
       <button id="btnPlayers" class="switch-btn active">
         STATISTIKA IGRAČA
       </button>
+      <button id="btnTimeline" class="switch-btn">TOK UTAKMICE</button>
     </div>
+
+    <div id="timelineContainer" style="display: none"></div>
 
     <div id="teamTotals"></div>
     <div id="statsContainer"></div>
@@ -354,6 +460,123 @@
         }
       }
 
+      /* ------------------ Game TimeLine ------------------ */
+
+      onValue(ref(db, "gameData/events"), (snap) => {
+        const events = snap.val() || {};
+        renderTimeline(events);
+      });
+
+      function renderTimeline(events) {
+        const container = document.getElementById("timelineContainer");
+        container.innerHTML = "";
+
+        const sortedEvents = Object.values(events).sort(
+          (a, b) => a.timestamp - b.timestamp
+        );
+
+        function getTeamByPlayer(playerName) {
+          for (const teamName in globalTeams) {
+            const players = globalTeams[teamName].players || {};
+            for (const num in players) {
+              if (players[num].name === playerName) {
+                return teamName;
+              }
+            }
+          }
+          return null;
+        }
+
+        let scoreA = 0;
+        let scoreB = 0;
+
+        sortedEvents.forEach((ev) => {
+          const date = new Date(ev.timestamp);
+          const minutes = String(date.getMinutes()).padStart(2, "0");
+          const seconds = String(date.getSeconds()).padStart(2, "0");
+          const time = `${minutes}:${seconds}`;
+
+          let text = "";
+          let points = 0;
+
+          switch (ev.type) {
+            case "points_2":
+              text = "pogađa šut za dva poena";
+              points = 2;
+              break;
+            case "miss_2":
+              text = "promašuje šut za dva poena";
+              break;
+            case "points_3":
+              text = "pogađa šut za tri poena";
+              points = 3;
+              break;
+            case "miss_3":
+              text = "promašuje šut za tri poena";
+              break;
+            case "points_1":
+              points = 1;
+              text = "pogađa šut za jedan poen";
+              break;
+            case "miss_1":
+              text = "promašuje šut za jedan poen";
+              break;
+            case "assists":
+              text = "Asistira";
+              break;
+            case "rebounds_def":
+              text = "Skok u odbrani";
+              break;
+            case "rebounds_off":
+              text = "Skok u napadu";
+              break;
+            case "steals":
+              text = "osvaja loptu";
+              break;
+            case "turnovers":
+              text = "gubi loptu";
+              break;
+            case "blocks":
+              text = "Blokada";
+              break;
+            default:
+              text = ev.type;
+          }
+          const teamName = ev.teamName || getTeamByPlayer(ev.playerName);
+          const alignmentClass =
+            teamName === orderedTeams[1] ? "event-right" : "event-left";
+          const logo = globalTeams[teamName]?.logo || "default.png";
+
+          let bubbleScore = null;
+
+          if (points > 0) {
+            if (teamName === orderedTeams[0]) scoreA += points;
+            else scoreB += points;
+
+            bubbleScore = `${scoreA} - ${scoreB}`;
+          }
+
+          if (bubbleScore) {
+            const scoreBubble = document.createElement("div");
+            scoreBubble.className = "timeline-score";
+            scoreBubble.textContent = bubbleScore;
+            container.appendChild(scoreBubble);
+          }
+
+          const div = document.createElement("div");
+          div.className = `event-card ${alignmentClass}`;
+          div.innerHTML = `
+      <img src="team_logo/${logo}" class="event-logo">
+      <div class="event-text">
+        <div class="event-player">${ev.playerName} ${""}</div>
+        <div class="event-type">${text} (${time})</div>
+      </div>
+    `;
+
+          container.appendChild(div);
+        });
+      }
+
       /* ------------------ NEW FULL TOTALS ------------------ */
 
       function renderTotals(teams) {
@@ -466,23 +689,39 @@
      ${row("Blokade", tA.blocks, tB.blocks, 20)}
   `;
       }
+
       const btnT = document.getElementById("btnTotals");
       const btnP = document.getElementById("btnPlayers");
+      const btnTimeline = document.getElementById("btnTimeline");
 
       btnT.onclick = () => {
         btnT.classList.add("active");
         btnP.classList.remove("active");
+        btnTimeline.classList.remove("active");
 
         document.getElementById("teamTotals").style.display = "block";
         document.getElementById("statsContainer").style.display = "none";
+        document.getElementById("timelineContainer").style.display = "none";
       };
 
       btnP.onclick = () => {
         btnP.classList.add("active");
         btnT.classList.remove("active");
+        btnTimeline.classList.remove("active");
 
         document.getElementById("teamTotals").style.display = "none";
         document.getElementById("statsContainer").style.display = "block";
+        document.getElementById("timelineContainer").style.display = "none";
+      };
+
+      btnTimeline.onclick = () => {
+        btnTimeline.classList.add("active");
+        btnP.classList.remove("active");
+        btnT.classList.remove("active");
+
+        document.getElementById("teamTotals").style.display = "none";
+        document.getElementById("statsContainer").style.display = "none";
+        document.getElementById("timelineContainer").style.display = "block";
       };
     </script>
   </body>
