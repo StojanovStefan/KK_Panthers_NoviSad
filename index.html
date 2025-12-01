@@ -6,8 +6,7 @@
 
     <style>
       body {
-        background: #e5e7eb;
-        color: black;
+        background: #f3f4f6;
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 20px;
@@ -15,58 +14,100 @@
 
       h1 {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
+        font-size: 28px;
+      }
+
+      #gamesList .game-card:first-child {
+        margin-top: 40px;
       }
 
       .game-card {
-        background: #d1d5db;
-        border-radius: 15px;
-        padding: 15px;
-        margin-bottom: 15px;
+        width: 100%;
+        background: white;
+        border-radius: 12px;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        overflow: hidden;
+        margin-bottom: 18px;
         cursor: pointer;
         transition: 0.2s;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
 
       .game-card:hover {
-        background: #9ba3b0;
         transform: scale(1.01);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      .left-info {
+        width: 160px;
+        background: #4b4b4b;
+        color: white;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 15px;
+      }
+
+      .left-info div {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: #606060;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        width: fit-content;
+      }
+
+      .date-time {
+        font-size: 17px;
+        font-weight: bold;
+        background: none !important;
+        padding: 0 !important;
+      }
+
+      .center-content {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .teams-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 25px;
       }
 
       .team {
         display: flex;
         align-items: center;
         gap: 10px;
-        min-width: 120px;
+        font-size: 20px;
       }
 
       .team img {
-        width: 50px;
-        height: 50px;
-        border-radius: 10px;
+        width: 110px;
+        height: 110px;
         object-fit: cover;
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+        background: white;
       }
 
-      .result {
-        font-size: 22px;
-        font-weight: bold;
-        text-align: center;
-        min-width: 80px;
-      }
-
-      .game-info {
-        text-align: right;
-        min-width: 120px;
-        font-weight: bold;
-        color: #333;
+      .score {
+        font-size: 26px;
+        color: black;
       }
     </style>
   </head>
 
   <body>
-    <h1>LZR NS</h1>
     <div id="gamesList"></div>
 
     <script type="module">
@@ -104,7 +145,17 @@
         const games = snapshot.val();
         const gameKeys = Object.keys(games);
         gameKeys.sort((a, b) => {
-          return new Date(b.split("_")[0]) - new Date(a.split("_")[0]);
+          const dateA = a.split("_")[0].split("-");
+          const dateB = b.split("_")[0].split("-");
+
+          const timestampA = new Date(
+            `${dateA[2]}-${dateA[1]}-${dateA[0]}`
+          ).getTime();
+          const timestampB = new Date(
+            `${dateB[2]}-${dateB[1]}-${dateB[0]}`
+          ).getTime();
+
+          return timestampB - timestampA;
         });
 
         const list = document.getElementById("gamesList");
@@ -123,6 +174,10 @@
           const scoreB = info.scoreB ?? "-";
 
           const date = info.date || key.split("_")[0];
+          const startTime = info.startTime || "";
+          const location = info.location || "";
+          const season = info.season || "";
+          const league = info.league || "";
 
           const card = document.createElement("div");
           card.className = "game-card";
@@ -131,22 +186,30 @@
           };
 
           card.innerHTML = `
-    <div class="team">
-        <img src="team_logo/${logoA}">
-        <span>${teamA}</span>
-    </div>
+          <div class="left-info">
+            <div class="date-time">📅 ${date} • 🕒 ${startTime}</div>
+            <div>📍 ${location}</div>
+            <div>${league}</div>
+            <div>${season}</div>
+          </div>
 
-    <div class="result">${scoreA} : ${scoreB}</div>
+          <div class="center-content">
+            <div class="teams-row">
+              <div class="team">
+                <img src="team_logo/${logoA}">
+                <span>${teamA}</span>
+              </div>
 
-    <div class="team">
-        <span>${teamB}</span>
-        <img src="team_logo/${logoB}">
-    </div>
+              <div class="score">${scoreA} : ${scoreB}</div>
 
-    <div class="game-info">
-        <div class="date">${date}</div>
-    </div>
-`;
+              <div class="team">
+                <span>${teamB}</span>
+                <img src="team_logo/${logoB}">
+              </div>
+            </div>
+
+          </div>
+        `;
 
           list.appendChild(card);
         });

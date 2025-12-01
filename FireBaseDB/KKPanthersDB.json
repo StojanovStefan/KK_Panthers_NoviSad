@@ -4,14 +4,14 @@
       "gameInfo": {
         "gameId": "2025-12-03_panthers_vs_grizzlies",
         "status": "live",
-        "league": "ns liga",
+        "league": "prijateljske",
         "season": "2025/26",
         "round": 1,
 
         "quarter": 1,
         "time": "10:00",
         "location": "SC Meridiana 1",
-        "date": "03.12.2025.",
+        "date": "03.12.2025",
         "startTime": "22:00",
 
         "teamA": "Panthers",
@@ -68,9 +68,9 @@
                 "efficiency": 0
               }
             },
-            "31": {
-              "name": "Merdović Stefan",
-              "number": 31,
+            "3": {
+              "name": "Stanković Dimitrije",
+              "number": 3,
               "stats": {
                 "points": 0,
                 "fg_made": 0,
@@ -91,9 +91,9 @@
                 "efficiency": 0
               }
             },
-            "11": {
-              "name": "Srdjan Lazarević",
-              "number": 11,
+            "16": {
+              "name": "Peruničić Mladen",
+              "number": 16,
               "stats": {
                 "points": 0,
                 "fg_made": 0,
@@ -114,9 +114,9 @@
                 "efficiency": 0
               }
             },
-            "30": {
-              "name": "Keskenović Stefan",
-              "number": 30,
+            "38": {
+              "name": "Lazarević Srdjan",
+              "number": 38,
               "stats": {
                 "points": 0,
                 "fg_made": 0,
@@ -137,9 +137,9 @@
                 "efficiency": 0
               }
             },
-            "1": {
-              "name": "Vujić Marko",
-              "number": 1,
+            "42": {
+              "name": "Maleš Dimitrije",
+              "number": 42,
               "stats": {
                 "points": 0,
                 "fg_made": 0,
@@ -185,78 +185,9 @@
           },
 
           "players": {
-            "6": {
-              "name": "Pavlović Teodor",
-              "number": 6,
-              "stats": {
-                "points": 0,
-                "fg_made": 0,
-                "fg_attempts": 0,
-                "two_made": 0,
-                "two_attempts": 0,
-                "three_made": 0,
-                "three_attempts": 0,
-                "ft_made": 0,
-                "ft_attempts": 0,
-                "rebounds_off": 0,
-                "rebounds_def": 0,
-                "assists": 0,
-                "steals": 0,
-                "blocks": 0,
-                "turnovers": 0,
-                "fouls": 0,
-                "efficiency": 0
-              }
-            },
-            "16": {
-              "name": "Peruničić Mladen",
-              "number": 16,
-              "stats": {
-                "points": 0,
-                "fg_made": 0,
-                "fg_attempts": 0,
-                "two_made": 0,
-                "two_attempts": 0,
-                "three_made": 0,
-                "three_attempts": 0,
-                "ft_made": 0,
-                "ft_attempts": 0,
-                "rebounds_off": 0,
-                "rebounds_def": 0,
-                "assists": 0,
-                "steals": 0,
-                "blocks": 0,
-                "turnovers": 0,
-                "fouls": 0,
-                "efficiency": 0
-              }
-            },
-            "33": {
-              "name": "Cvetinović Nikola",
-              "number": 33,
-              "stats": {
-                "points": 0,
-                "fg_made": 0,
-                "fg_attempts": 0,
-                "two_made": 0,
-                "two_attempts": 0,
-                "three_made": 0,
-                "three_attempts": 0,
-                "ft_made": 0,
-                "ft_attempts": 0,
-                "rebounds_off": 0,
-                "rebounds_def": 0,
-                "assists": 0,
-                "steals": 0,
-                "blocks": 0,
-                "turnovers": 0,
-                "fouls": 0,
-                "efficiency": 0
-              }
-            },
-            "77": {
-              "name": "Stojanov Stefan",
-              "number": 77,
+            "1": {
+              "name": "Vujić Marko",
+              "number": 1,
               "stats": {
                 "points": 0,
                 "fg_made": 0,
@@ -299,6 +230,75 @@
                 "fouls": 0,
                 "efficiency": 0
               }
+            },
+            "30": {
+              "name": "Keskenović Stefan",
+              "number": 30,
+              "stats": {
+                "points": 0,
+                "fg_made": 0,
+                "fg_attempts": 0,
+                "two_made": 0,
+                "two_attempts": 0,
+                "three_made": 0,
+                "three_attempts": 0,
+                "ft_made": 0,
+                "ft_attempts": 0,
+                "rebounds_off": 0,
+                "rebounds_def": 0,
+                "assists": 0,
+                "steals": 0,
+                "blocks": 0,
+                "turnovers": 0,
+                "fouls": 0,
+                "efficiency": 0
+              }
+            },
+            "31": {
+              "name": "Merdović Stefan",
+              "number": 31,
+              "stats": {
+                "points": 0,
+                "fg_made": 0,
+                "fg_attempts": 0,
+                "two_made": 0,
+                "two_attempts": 0,
+                "three_made": 0,
+                "three_attempts": 0,
+                "ft_made": 0,
+                "ft_attempts": 0,
+                "rebounds_off": 0,
+                "rebounds_def": 0,
+                "assists": 0,
+                "steals": 0,
+                "blocks": 0,
+                "turnovers": 0,
+                "fouls": 0,
+                "efficiency": 0
+              }
+            },
+            "77": {
+              "name": "Stojanov Stefan",
+              "number": 77,
+              "stats": {
+                "points": 0,
+                "fg_made": 0,
+                "fg_attempts": 0,
+                "two_made": 0,
+                "two_attempts": 0,
+                "three_made": 0,
+                "three_attempts": 0,
+                "ft_made": 0,
+                "ft_attempts": 0,
+                "rebounds_off": 0,
+                "rebounds_def": 0,
+                "assists": 0,
+                "steals": 0,
+                "blocks": 0,
+                "turnovers": 0,
+                "fouls": 0,
+                "efficiency": 0
+              }
             }
           }
         }
@@ -309,14 +309,14 @@
       "gameInfo": {
         "gameId": "2025-12-10_panthers_vs_grizzlies",
         "status": "live",
-        "league": "ns liga",
+        "league": "prijateljske",
         "season": "2025/26",
         "round": 2,
 
         "quarter": 1,
         "time": "10:00",
         "location": "SC Meridiana 1",
-        "date": "10.12.2025.",
+        "date": "10.12.2025",
         "startTime": "22:00",
 
         "teamA": "Panthers",

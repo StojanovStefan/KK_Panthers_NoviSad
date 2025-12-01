@@ -70,7 +70,7 @@
         height: 140px;
         border-radius: 50%;
         object-fit: cover;
-        border: 6px solid white;
+        border: 3px solid white;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
       }
 
@@ -271,10 +271,65 @@
         transform: scale(1.2);
         transition: transform 0.2s;
       }
+
+      .mvp-block {
+        text-align: center;
+        margin-top: 15px;
+        background: linear-gradient(135deg, #d1d5db, #9ca3af);
+        color: black;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        padding: 15px;
+        border-radius: 12px;
+        border: 0 solid #d4d9e0;
+        box-sizing: border-box;
+        min-width: 250px;
+      }
+
+      .mvp-title {
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+
+      .mvp-player {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.6);
+        padding: 10px 15px;
+        border-radius: 10px;
+      }
+
+      .mvp-player img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .mvp-player-name {
+        font-size: 16px;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+
+      .mvp-player-name span {
+        font-weight: normal;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+      .final-result-text {
+        font-size: 20px;
+        margin-bottom: 5px;
+        color: black;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
     <div id="gameHeader"></div>
+    <div id="mvpContainer"></div>
 
     <div class="top-buttons">
       <button id="btnTotals" class="switch-btn">STATISTIKA</button>
@@ -324,6 +379,7 @@
 
       let orderedTeams = [];
       let globalTeams = {};
+      let gameInfo = null;
 
       function copyBroadcastLink() {
         const basePath = "/KK_Panthers_NoviSad";
@@ -368,9 +424,17 @@
         }, 2000);
       }
 
+      onValue(ref(db, `games/${gameId}/teams`), (snap) => {
+        globalTeams = snap.val() || {};
+        renderStats(globalTeams);
+        renderTotals(globalTeams);
+        if (gameInfo) renderGameHeader(gameInfo);
+      });
+
       onValue(ref(db, `games/${gameId}/gameInfo`), (snap) => {
         const info = snap.val() || {};
         orderedTeams = [info.teamA, info.teamB];
+        gameInfo = info;
         renderGameHeader(info);
       });
 
@@ -386,40 +450,120 @@
         const date = info.date || "";
         const startTime = info.startTime || "";
 
+        let mvpHtml = "";
+        if (
+          info.status === "finished" &&
+          globalTeams[info.teamA] &&
+          globalTeams[info.teamB]
+        ) {
+          const scoreA = info.scoreA ?? 0;
+          const scoreB = info.scoreB ?? 0;
+          const winnerTeam = scoreA >= scoreB ? info.teamA : info.teamB;
+
+          const players = globalTeams[winnerTeam].players || {};
+          let bestPlayer = null;
+          let maxEff = -Infinity;
+
+          for (const number in players) {
+            const p = players[number];
+            const s = p.stats || {};
+            const eff =
+              (s.points || 0) +
+              (s.rebounds_off || 0) +
+              (s.rebounds_def || 0) +
+              (s.assists || 0) +
+              (s.steals || 0) +
+              (s.blocks || 0) -
+              (s.turnovers || 0) -
+              ((s.fg_attempts || 0) -
+                (s.fg_made || 0) +
+                (s.ft_attempts || 0) -
+                (s.ft_made || 0));
+
+            if (eff > maxEff) {
+              maxEff = eff;
+              bestPlayer = p;
+            }
+          }
+
+          if (bestPlayer) {
+            mvpHtml = `
+      <div class="mvp-block">
+        <div class="mvp-title">Igrač utakmice</div>
+        <div class="mvp-player">
+          <img src="team_logo/${
+            bestPlayer.photo || "default_player.png"
+          }" alt="${bestPlayer.name}">
+          <div class="mvp-player-name">
+            ${bestPlayer.name}&nbsp; <span>${maxEff} (+/-)</span>
+          </div>
+        </div>
+      </div>`;
+          }
+        }
+
         container.innerHTML = `
-   <div class="game-header">
-  <div class="game-info">
-    📍 ${info.location || "Nepoznato"} •
-    📅 ${date} •
-    🕒 ${startTime} •
-    <span class="live-broadcast">🎦</span>
-  </div>
-
-  <div class="teams">
-    <div class="team-block">
-      <img src="team_logo/${info.teamA_logo || "default.png"}" class="big-logo">
-      <div class="team-name-large">${info.teamA}</div>
+  <div class="game-header">
+    <div class="game-info">
+      📍 ${info.location || "Nepoznato"} •
+      📅 ${date} •
+      🕒 ${startTime} •
+      <span class="live-broadcast">🎦</span>
     </div>
 
-    <div class="score-big">${info.scoreA ?? "-"} : ${info.scoreB ?? "-"}</div>
+    <div class="teams">
+      <div class="team-block">
+        <img src="team_logo/${
+          info.teamA_logo || "default.png"
+        }" class="big-logo">
+        <div class="team-name-large">${info.teamA}</div>
+      </div>
 
-    <div class="team-block">
-      <img src="team_logo/${info.teamB_logo || "default.png"}" class="big-logo">
-      <div class="team-name-large">${info.teamB}</div>
-    </div>
-  </div>
+      <div class="score-big-container">
+  ${
+    info.status === "finished"
+      ? '<div class="final-result-text">Konačni rezultat</div>'
+      : ""
+  }
+  <div class="score-big">${info.scoreA ?? "-"} : ${info.scoreB ?? "-"}</div>
 </div>
+
+      <div class="team-block">
+        <img src="team_logo/${
+          info.teamB_logo || "default.png"
+        }" class="big-logo">
+        <div class="team-name-large">${info.teamB}</div>
+      </div>
+    </div>
+
+    ${mvpHtml}
+  </div>
   `;
+
         const broadcastIcon = container.querySelector(".live-broadcast");
         if (broadcastIcon) {
           broadcastIcon.addEventListener("click", copyBroadcastLink);
         }
       }
 
+      function tryRenderAll() {
+        if (gameInfo && Object.keys(globalTeams).length) {
+          renderStats(globalTeams);
+          renderTotals(globalTeams);
+          renderGameHeader(gameInfo);
+        }
+      }
+
       onValue(ref(db, `games/${gameId}/teams`), (snap) => {
         globalTeams = snap.val() || {};
-        renderStats(globalTeams);
-        renderTotals(globalTeams);
+        tryRenderAll();
+      });
+
+      onValue(ref(db, `games/${gameId}/gameInfo`), (snap) => {
+        const info = snap.val() || {};
+        orderedTeams = [info.teamA, info.teamB];
+        gameInfo = info;
+        tryRenderAll();
       });
 
       function renderStats(teams) {
@@ -510,22 +654,22 @@
 
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td>${p.number}</td>
-              <td class="player-name">${p.name}</td>
-              <td>${eff}</td>
-              <td>${s.fg_made}/${s.fg_attempts} ${fgPct}</td>
-              <td>${s.two_made}/${s.two_attempts} ${twoPct}</td>
-              <td>${s.three_made}/${s.three_attempts} ${threePct}</td>
-              <td>${s.ft_made}/${s.ft_attempts} ${ftPct}</td>
-              <td>${s.rebounds_off + s.rebounds_def}<br>${s.rebounds_off} / ${
-              s.rebounds_def
-            }</td>
-              <td>${s.assists}</td>
-              <td>${s.turnovers}</td>
-              <td>${s.steals}</td>
-              <td>${s.blocks}</td>
-              <td>${s.points}</td>
-            `;
+                    <td>${p.number}</td>
+                    <td class="player-name">${p.name}</td>
+                    <td>${eff}</td>
+                    <td>${s.fg_made}/${s.fg_attempts} ${fgPct}</td>
+                    <td>${s.two_made}/${s.two_attempts} ${twoPct}</td>
+                    <td>${s.three_made}/${s.three_attempts} ${threePct}</td>
+                    <td>${s.ft_made}/${s.ft_attempts} ${ftPct}</td>
+                    <td>${s.rebounds_off + s.rebounds_def}<br>${
+              s.rebounds_off
+            } / ${s.rebounds_def}</td>
+                    <td>${s.assists}</td>
+                    <td>${s.turnovers}</td>
+                    <td>${s.steals}</td>
+                    <td>${s.blocks}</td>
+                    <td>${s.points}</td>
+                  `;
             tbody.appendChild(row);
           }
 
@@ -641,12 +785,12 @@
           const div = document.createElement("div");
           div.className = `event-card ${alignmentClass}`;
           div.innerHTML = `
-      <img src="team_logo/${logo}" class="event-logo">
-      <div class="event-text">
-        <div class="event-player">${ev.playerName} ${""}</div>
-        <div class="event-type">${text} (${time})</div>
-      </div>
-    `;
+            <img src="team_logo/${logo}" class="event-logo">
+            <div class="event-text">
+              <div class="event-player">${ev.playerName} ${""}</div>
+              <div class="event-type">${text} (${time})</div>
+            </div>
+          `;
 
           container.appendChild(div);
         });
@@ -686,83 +830,88 @@
           const classB = valB > valA ? "bar-primary" : "bar-secondary";
 
           return `
-    <div class="stat-row">
+          <div class="stat-row">
 
-      <div style="width:60px">
-        ${valA}${showPercent ? "%" : ""}
-      </div>
+            <div style="width:60px">
+              ${valA}${showPercent ? "%" : ""}
+            </div>
 
-      <div class="bar-container">
-        <div class="${classA}" style="width:${widthA}%"></div>
-      </div>
+            <div class="bar-container">
+              <div class="${classA}" style="width:${widthA}%"></div>
+            </div>
 
-      <strong>${label}</strong>
+            <strong>${label}</strong>
 
-      <div class="bar-container">
-        <div class="${classB}" style="width:${widthB}%"></div>
-      </div>
+            <div class="bar-container">
+              <div class="${classB}" style="width:${widthB}%"></div>
+            </div>
 
-      <div style="width:60px;text-align:right">
-        ${valB}${showPercent ? "%" : ""}
-      </div>
+            <div style="width:60px;text-align:right">
+              ${valB}${showPercent ? "%" : ""}
+            </div>
 
-    </div>
-  `;
+          </div>
+        `;
         }
 
         container.innerHTML = `
-     ${row("Poeni", tA.points, tB.points, 150)}
+           ${row("Poeni", tA.points, tB.points, 150)}
 
-     ${row("Šut iz igre pokušaj", tA.fg_attempts, tB.fg_attempts, 120)}
-     ${row("Šut iz igre pogodak", tA.fg_made, tB.fg_made, 80)}
-     ${row(
-       "Šut iz igre %",
-       pct(tA.fg_made, tA.fg_attempts),
-       pct(tB.fg_made, tB.fg_attempts),
-       100
-     )}
+           ${row("Šut iz igre pokušaj", tA.fg_attempts, tB.fg_attempts, 120)}
+           ${row("Šut iz igre pogodak", tA.fg_made, tB.fg_made, 80)}
+           ${row(
+             "Šut iz igre %",
+             pct(tA.fg_made, tA.fg_attempts),
+             pct(tB.fg_made, tB.fg_attempts),
+             100
+           )}
 
-     ${row("2 poena šut", tA.two_attempts, tB.two_attempts, 80)}
-     ${row("2 poena pogodak", tA.two_made, tB.two_made, 50)}
-     ${row(
-       "2 poena %",
-       pct(tA.two_made, tA.two_attempts),
-       pct(tB.two_made, tB.two_attempts),
-       100
-     )}
+           ${row("2 poena šut", tA.two_attempts, tB.two_attempts, 80)}
+           ${row("2 poena pogodak", tA.two_made, tB.two_made, 50)}
+           ${row(
+             "2 poena %",
+             pct(tA.two_made, tA.two_attempts),
+             pct(tB.two_made, tB.two_attempts),
+             100
+           )}
 
-     ${row("3 poena šut", tA.three_attempts, tB.three_attempts, 60)}
-     ${row("3 poena pogodak", tA.three_made, tB.three_made, 30)}
-     ${row(
-       "3 poena %",
-       pct(tA.three_made, tA.three_attempts),
-       pct(tB.three_made, tB.three_attempts),
-       100
-     )}
+           ${row("3 poena šut", tA.three_attempts, tB.three_attempts, 60)}
+           ${row("3 poena pogodak", tA.three_made, tB.three_made, 30)}
+           ${row(
+             "3 poena %",
+             pct(tA.three_made, tA.three_attempts),
+             pct(tB.three_made, tB.three_attempts),
+             100
+           )}
 
-     ${row("Slobodna bacanja pokušaj", tA.ft_attempts, tB.ft_attempts, 50)}
-     ${row("Slobodna bacanja pogodak", tA.ft_made, tB.ft_made, 40)}
-     ${row(
-       "Slobodna bacanja %",
-       pct(tA.ft_made, tA.ft_attempts),
-       pct(tB.ft_made, tB.ft_attempts),
-       100
-     )}
+           ${row(
+             "Slobodna bacanja pokušaj",
+             tA.ft_attempts,
+             tB.ft_attempts,
+             50
+           )}
+           ${row("Slobodna bacanja pogodak", tA.ft_made, tB.ft_made, 40)}
+           ${row(
+             "Slobodna bacanja %",
+             pct(tA.ft_made, tA.ft_attempts),
+             pct(tB.ft_made, tB.ft_attempts),
+             100
+           )}
 
-     ${row("Ofanzivni skok", tA.rebounds_off, tB.rebounds_off, 30)}
-     ${row("Defanzivni skok", tA.rebounds_def, tB.rebounds_def, 40)}
-   ${row(
-     "Skok",
-     tA.rebounds_off + tA.rebounds_def,
-     tB.rebounds_off + tB.rebounds_def,
-     70
-   )}
+           ${row("Ofanzivni skok", tA.rebounds_off, tB.rebounds_off, 30)}
+           ${row("Defanzivni skok", tA.rebounds_def, tB.rebounds_def, 40)}
+         ${row(
+           "Skok",
+           tA.rebounds_off + tA.rebounds_def,
+           tB.rebounds_off + tB.rebounds_def,
+           70
+         )}
 
-     ${row("Asistencije", tA.assists, tB.assists, 40)}
-     ${row("Izgubljene lopte", tA.turnovers, tB.turnovers, 30)}
-     ${row("Ukradene lopte", tA.steals, tB.steals, 25)}
-     ${row("Blokade", tA.blocks, tB.blocks, 20)}
-  `;
+           ${row("Asistencije", tA.assists, tB.assists, 40)}
+           ${row("Izgubljene lopte", tA.turnovers, tB.turnovers, 30)}
+           ${row("Ukradene lopte", tA.steals, tB.steals, 25)}
+           ${row("Blokade", tA.blocks, tB.blocks, 20)}
+        `;
       }
 
       const btnT = document.getElementById("btnTotals");
