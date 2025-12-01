@@ -88,17 +88,15 @@
 
       .scoreboard {
         position: absolute;
-        bottom: 7%;
+        bottom: 3%;
         left: 50%;
         transform: translateX(-50%);
         width: 733px;
         height: 76px;
         background: rgba(0, 0, 0, 0);
-
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-radius: 10px;
         overflow: hidden;
         z-index: 15;
       }
@@ -124,8 +122,8 @@
       }
 
       .team img {
-        width: 50px;
-        height: 50px;
+        width: 68px;
+        height: 68px;
         border-radius: 50%;
         object-fit: contain;
         background: #000;
@@ -135,11 +133,12 @@
       .team-name {
         font-weight: bold;
         text-transform: uppercase;
-        margin: 0 10px;
+        margin: 0 6px;
         color: #fff;
-        font-size: 18px;
-        width: 50px;
+        font-size: 26px;
+        width: auto;
         text-align: center;
+        min-width: 50px;
       }
 
       .score-container {
@@ -147,7 +146,8 @@
         align-items: center;
         gap: 10px;
         font-weight: bold;
-        font-size: 28px;
+        font-size: 48px;
+        font-family: "Segoe UI";
         color: #222;
         background: #f0f0f0;
 
@@ -301,7 +301,7 @@
         document.getElementById("statShot").textContent = shotValue;
 
         document.getElementById("playerPhoto").src = player.photo
-          ? "players/" + player.photo
+          ? "team_logo/" + player.photo
           : "team_logo/default_player.png";
 
         const popup = document.getElementById("playerStatsPopup");

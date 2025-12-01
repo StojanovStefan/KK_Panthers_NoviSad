@@ -261,7 +261,7 @@
         font-size: 16px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         margin-top: 5px;
-        z-index: 5;
+        z-index: 1;
       }
       .live-broadcast {
         cursor: pointer;
@@ -296,7 +296,7 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        background: rgba(255, 255, 255, 0.6);
+        background: linear-gradient(135deg, #e5e7eb, #cbd5e1);
         padding: 10px 15px;
         border-radius: 10px;
       }
@@ -324,6 +324,15 @@
         margin-bottom: 5px;
         color: black;
         white-space: nowrap;
+      }
+
+      .player-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        vertical-align: middle;
+        margin-right: 5px;
       }
     </style>
   </head>
@@ -626,6 +635,27 @@
             const p = players[number];
             const s = p.stats || {};
 
+            const row = document.createElement("tr");
+
+            const tdNumber = document.createElement("td");
+            tdNumber.textContent = p.number ?? "-";
+            row.appendChild(tdNumber);
+
+            const tdName = document.createElement("td");
+            tdName.className = "player-name";
+
+            const playerImg = document.createElement("img");
+            playerImg.src = `team_logo/${p.photo || "default_player.png"}`;
+            playerImg.alt = p.name;
+            playerImg.className = "player-img";
+            playerImg.onerror = function () {
+              this.src = "team_logo/default_player.png";
+            };
+
+            tdName.appendChild(playerImg);
+            tdName.appendChild(document.createTextNode(" " + p.name));
+            row.appendChild(tdName);
+
             const eff =
               (s.points || 0) +
               (s.rebounds_off || 0) +
@@ -652,24 +682,60 @@
               ? Math.round((s.ft_made / s.ft_attempts) * 100) + "%"
               : "0%";
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                    <td>${p.number}</td>
-                    <td class="player-name">${p.name}</td>
-                    <td>${eff}</td>
-                    <td>${s.fg_made}/${s.fg_attempts} ${fgPct}</td>
-                    <td>${s.two_made}/${s.two_attempts} ${twoPct}</td>
-                    <td>${s.three_made}/${s.three_attempts} ${threePct}</td>
-                    <td>${s.ft_made}/${s.ft_attempts} ${ftPct}</td>
-                    <td>${s.rebounds_off + s.rebounds_def}<br>${
-              s.rebounds_off
-            } / ${s.rebounds_def}</td>
-                    <td>${s.assists}</td>
-                    <td>${s.turnovers}</td>
-                    <td>${s.steals}</td>
-                    <td>${s.blocks}</td>
-                    <td>${s.points}</td>
-                  `;
+            const tdEff = document.createElement("td");
+            tdEff.textContent = eff;
+            row.appendChild(tdEff);
+
+            const tdFG = document.createElement("td");
+            tdFG.textContent = `${s.fg_made || 0}/${
+              s.fg_attempts || 0
+            } ${fgPct}`;
+            row.appendChild(tdFG);
+
+            const tdTwo = document.createElement("td");
+            tdTwo.textContent = `${s.two_made || 0}/${
+              s.two_attempts || 0
+            } ${twoPct}`;
+            row.appendChild(tdTwo);
+
+            const tdThree = document.createElement("td");
+            tdThree.textContent = `${s.three_made || 0}/${
+              s.three_attempts || 0
+            } ${threePct}`;
+            row.appendChild(tdThree);
+
+            const tdFT = document.createElement("td");
+            tdFT.textContent = `${s.ft_made || 0}/${
+              s.ft_attempts || 0
+            } ${ftPct}`;
+            row.appendChild(tdFT);
+
+            const tdReb = document.createElement("td");
+            tdReb.textContent = `${
+              (s.rebounds_off || 0) + (s.rebounds_def || 0)
+            }\n${s.rebounds_off || 0} / ${s.rebounds_def || 0}`;
+            row.appendChild(tdReb);
+
+            const tdAST = document.createElement("td");
+            tdAST.textContent = s.assists || 0;
+            row.appendChild(tdAST);
+
+            const tdTO = document.createElement("td");
+            tdTO.textContent = s.turnovers || 0;
+            row.appendChild(tdTO);
+
+            const tdSTL = document.createElement("td");
+            tdSTL.textContent = s.steals || 0;
+            row.appendChild(tdSTL);
+
+            const tdBLK = document.createElement("td");
+            tdBLK.textContent = s.blocks || 0;
+            row.appendChild(tdBLK);
+
+            const tdPTS = document.createElement("td");
+            tdPTS.textContent = s.points || 0;
+            row.appendChild(tdPTS);
+
             tbody.appendChild(row);
           }
 
