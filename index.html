@@ -102,7 +102,86 @@
 
       .score {
         font-size: 26px;
+        white-space: nowrap;
         color: black;
+      }
+
+      /* 📱 MOBILNA VERZIJA  (ekrani ispod 600px) */
+      @media (max-width: 600px) {
+        body {
+          padding: 10px;
+        }
+
+        h1 {
+          font-size: 22px;
+          margin-bottom: 15px;
+        }
+
+        .game-card {
+          flex-direction: column; /* sve ide jedan ispod drugog */
+          border-radius: 10px;
+        }
+
+        .left-info {
+          width: 100%;
+          padding: 12px;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: space-between;
+          text-align: left;
+        }
+
+        .left-info div {
+          font-size: 12px;
+        }
+
+        .date-time {
+          font-size: 15px;
+          width: 100%;
+        }
+
+        .center-content {
+          padding: 15px;
+        }
+
+        .teams-row {
+          flex-direction: column; /* timovi jedan iznad drugog */
+          gap: 15px;
+        }
+
+        .team {
+          font-size: 18px;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .team img {
+          width: 90px;
+          height: 90px;
+        }
+
+        .score {
+          font-size: 22px;
+          white-space: nowrap;
+        }
+      }
+
+      /* 📱 VEOMA MALI EKRANI (ispod 400px) */
+      @media (max-width: 400px) {
+        .team img {
+          width: 75px;
+          height: 75px;
+        }
+
+        .team {
+          font-size: 16px;
+        }
+
+        .score {
+          font-size: 20px;
+          white-space: nowrap;
+        }
       }
     </style>
   </head>
