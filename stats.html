@@ -13,26 +13,40 @@
       h1 {
         margin-top: 0;
       }
-      .teamStats {
-        max-width: 1300px;
-        margin: 0 auto;
-        padding: 20px;
-      }
 
-      .table-wrapper {
-        width: 100%;
+      .teamStats {
         overflow-x: auto;
-        border-radius: 10px;
       }
 
       table {
         width: 100%;
-        min-width: 900px;
         border-collapse: collapse;
         background: white;
-        border-radius: 10px;
+        border-radius: 16px;
         overflow: hidden;
+        font-size: 16px;
       }
+
+      @media (max-width: 600px) {
+        th,
+        td {
+          padding: 10px;
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 400px) {
+        th,
+        td {
+          padding: 8px;
+          font-size: 12px;
+        }
+
+        table {
+          font-size: 14px;
+        }
+      }
+
       th {
         color: white;
       }
@@ -790,11 +804,7 @@
           }
 
           table.appendChild(tbody);
-
-          const wrapper = document.createElement("div");
-          wrapper.className = "table-wrapper";
-          wrapper.appendChild(table);
-          div.appendChild(wrapper);
+          div.appendChild(table);
           container.appendChild(div);
         }
       }
